@@ -208,9 +208,10 @@ func (r *AutoscalingRunnerSetReconciler) Reconcile(ctx context.Context, req ctrl
 	}
 
 	secret := new(corev1.Secret)
-	if err := r.Get(ctx, types.NamespacedName{Namespace: autoscalingRunnerSet.Namespace, Name: autoscalingRunnerSet.Spec.GitHubConfigSecret}, secret); err != nil {
+	// TODO: i hate how hardcoded this is everwhere...
+	if err := r.Get(ctx, types.NamespacedName{Namespace: "arc-systems", Name: autoscalingRunnerSet.Spec.GitHubConfigSecret}, secret); err != nil {
 		log.Error(err, "Failed to find GitHub config secret.",
-			"namespace", autoscalingRunnerSet.Namespace,
+			"namespace", "arc-systems",
 			"name", autoscalingRunnerSet.Spec.GitHubConfigSecret)
 		return ctrl.Result{}, err
 	}
@@ -678,7 +679,8 @@ func (r *AutoscalingRunnerSetReconciler) listEphemeralRunnerSets(ctx context.Con
 
 func (r *AutoscalingRunnerSetReconciler) actionsClientFor(ctx context.Context, autoscalingRunnerSet *v1alpha1.AutoscalingRunnerSet) (actions.ActionsService, error) {
 	var configSecret corev1.Secret
-	if err := r.Get(ctx, types.NamespacedName{Namespace: autoscalingRunnerSet.Namespace, Name: autoscalingRunnerSet.Spec.GitHubConfigSecret}, &configSecret); err != nil {
+	// TODO: hardcoded
+	if err := r.Get(ctx, types.NamespacedName{Namespace: "arc-systems", Name: autoscalingRunnerSet.Spec.GitHubConfigSecret}, &configSecret); err != nil {
 		return nil, fmt.Errorf("failed to find GitHub config secret: %w", err)
 	}
 
