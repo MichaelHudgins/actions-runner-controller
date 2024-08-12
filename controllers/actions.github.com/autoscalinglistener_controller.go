@@ -128,16 +128,19 @@ func (r *AutoscalingListenerReconciler) Reconcile(ctx context.Context, req ctrl.
 		return ctrl.Result{}, err
 	}
 
+	// ML Actions - we do not care about the namespaced secret, in fact we do not even allow it to be created...
+	log.Info("ML Actions override, checking primary nammespace not runner namespace for secret")
+
 	// Check if the GitHub config secret exists
 	secret := new(corev1.Secret)
-	if err := r.Get(ctx, types.NamespacedName{Namespace: autoscalingListener.Spec.AutoscalingRunnerSetNamespace, Name: autoscalingListener.Spec.GitHubConfigSecret}, secret); err != nil {
+	if err := r.Get(ctx, types.NamespacedName{Namespace: autoscalingListener.Namespace, Name: autoscalingListener.Spec.GitHubConfigSecret}, secret); err != nil {
 		log.Error(err, "Failed to find GitHub config secret.",
 			"namespace", autoscalingListener.Spec.AutoscalingRunnerSetNamespace,
 			"name", autoscalingListener.Spec.GitHubConfigSecret)
 		return ctrl.Result{}, err
 	}
 
-	// Create a mirror secret in the same namespace as the AutoscalingListener
+	// // Create a mirror secret in the same namespace as the AutoscalingListener
 	mirrorSecret := new(corev1.Secret)
 	if err := r.Get(ctx, types.NamespacedName{Namespace: autoscalingListener.Namespace, Name: scaleSetListenerSecretMirrorName(autoscalingListener)}, mirrorSecret); err != nil {
 		if !kerrors.IsNotFound(err) {
@@ -146,7 +149,7 @@ func (r *AutoscalingListenerReconciler) Reconcile(ctx context.Context, req ctrl.
 		}
 
 		// Create a mirror secret for the listener pod in the Controller namespace for listener pod to use
-		log.Info("Creating a mirror listener secret for the listener pod")
+		// log.Error(err, "ML Actions does not allow for secret mirroring from the original namespace, expected to see secret", "secret", scaleSetListenerSecretMirrorName(autoscalingListener))
 		return r.createSecretsForListener(ctx, autoscalingListener, secret, log)
 	}
 

@@ -16,7 +16,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the go source
-# COPY . .
+COPY . .
 
 # Usage:
 #   docker buildx build --tag repo/img:tag -f ./Dockerfile . --platform linux/amd64,linux/arm64,linux/arm/v7
@@ -30,12 +30,10 @@ ARG TARGETPLATFORM TARGETOS TARGETARCH TARGETVARIANT VERSION=dev COMMIT_SHA=dev
 # to avoid https://github.com/moby/buildkit/issues/2334
 # We can use docker layer cache so the build is fast enogh anyway
 # We also use per-platform GOCACHE for the same reason.
-ENV GOCACHE /build/${TARGETPLATFORM}/root/.cache/go-build
+# ENV GOCACHE /build/${TARGETPLATFORM}/root/.cache/go-build
 
 # Build
-RUN --mount=target=. \
-  --mount=type=cache,mode=0777,target=${GOCACHE} \
-  export GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} && \
+RUN  export GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOARM=${TARGETVARIANT#v} && \
   go build -trimpath -ldflags="-s -w -X 'github.com/actions/actions-runner-controller/build.Version=${VERSION}' -X 'github.com/actions/actions-runner-controller/build.CommitSHA=${COMMIT_SHA}'" -o /out/manager main.go && \
   go build -trimpath -ldflags="-s -w -X 'github.com/actions/actions-runner-controller/build.Version=${VERSION}' -X 'github.com/actions/actions-runner-controller/build.CommitSHA=${COMMIT_SHA}'" -o /out/github-runnerscaleset-listener ./cmd/githubrunnerscalesetlistener && \
   go build -trimpath -ldflags="-s -w -X 'github.com/actions/actions-runner-controller/build.Version=${VERSION}' -X 'github.com/actions/actions-runner-controller/build.CommitSHA=${COMMIT_SHA}'" -o /out/ghalistener ./cmd/ghalistener && \

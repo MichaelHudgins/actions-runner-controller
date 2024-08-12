@@ -712,7 +712,8 @@ func (r *EphemeralRunnerReconciler) updateRunStatusFromPod(ctx context.Context, 
 
 func (r *EphemeralRunnerReconciler) actionsClientFor(ctx context.Context, runner *v1alpha1.EphemeralRunner) (actions.ActionsService, error) {
 	secret := new(corev1.Secret)
-	if err := r.Get(ctx, types.NamespacedName{Namespace: runner.Namespace, Name: runner.Spec.GitHubConfigSecret}, secret); err != nil {
+	// Why does does all this controlelr code think it honestly needs the runner namespace?????
+	if err := r.Get(ctx, types.NamespacedName{Namespace: "arc-systems", Name: runner.Spec.GitHubConfigSecret}, secret); err != nil {
 		return nil, fmt.Errorf("failed to get secret: %w", err)
 	}
 
